@@ -18,6 +18,8 @@
  */
 package com.mebigfatguy.fbcontrib.detect;
 
+import java.util.Locale;
+
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
@@ -132,19 +134,21 @@ public class CollectionNamingConfusion extends PreorderVisitor implements Detect
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EXS_EXCEPTION_SOFTENING_RETURN_FALSE", justification = "No other simple way to determine whether class exists")
     private boolean checkConfusedName(String name, String signature) {
         try {
-            name = name.toLowerCase();
-            if ((name.endsWith("map") || (name.endsWith("set") && !name.endsWith("toset")) || name.endsWith("list") || name.endsWith("queue"))
-                    && signature.startsWith("Ljava/util/")) {
-                String clsName = SignatureUtils.stripSignature(signature);
-                JavaClass cls = Repository.lookupClass(clsName);
-                if (cls.implementationOf(MAP_CLASS) && !name.endsWith("map")) {
-                    return true;
-                } else if (cls.implementationOf(SET_CLASS) && !name.endsWith("set")) {
-                    return true;
-                } else if (cls.implementationOf(LIST_CLASS) && !name.endsWith("list")) {
-                    return true;
-                } else if (cls.implementationOf(QUEUE_CLASS) && !name.endsWith("queue")) {
-                    return true;
+            if (signature.startsWith("Ljava/util/")) {
+                // English will suffice for the checks we want to do
+                name = name.toLowerCase(Locale.ENGLISH);
+                if (name.endsWith("map") || (name.endsWith("set") && !name.endsWith("toset")) || name.endsWith("list") || name.endsWith("queue")) {
+                    String clsName = SignatureUtils.stripSignature(signature);
+                    JavaClass cls = Repository.lookupClass(clsName);
+                    if (cls.implementationOf(MAP_CLASS) && !name.endsWith("map")) {
+                        return true;
+                    } else if (cls.implementationOf(SET_CLASS) && !name.endsWith("set")) {
+                        return true;
+                    } else if (cls.implementationOf(LIST_CLASS) && !name.endsWith("list")) {
+                        return true;
+                    } else if (cls.implementationOf(QUEUE_CLASS) && !name.endsWith("queue")) {
+                        return true;
+                    }
                 }
             }
         } catch (ClassNotFoundException cnfe) {
