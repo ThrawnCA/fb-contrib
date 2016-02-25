@@ -81,6 +81,7 @@ public class JPAIssues extends BytecodeScanningDetector {
             runtimeExceptionClass = Repository.lookupClass("java.lang.RuntimeException");
         } catch (Exception e) {
             // can't log, have no bugReporter
+            throw new AssertionError("Couldn't locate java.lang.RuntimeException!");
         }
     }
 
