@@ -43,11 +43,12 @@ public class OCSDebugger extends BytecodeScanningDetector {
     private PrintWriter pw = null;
 
     public OCSDebugger(@SuppressWarnings("unused") BugReporter bugReporter) {
+        // no bugs are reported, so not storing the bugReporter
     }
 
     @Override
     public void visitClassContext(ClassContext classContext) {
-        if ((OUTPUT_FILE_NAME != null) && (METHOD_DESC != null)) {
+        if (OUTPUT_FILE_NAME != null && METHOD_DESC != null) {
             super.visitClassContext(classContext);
         }
     }
@@ -64,6 +65,7 @@ public class OCSDebugger extends BytecodeScanningDetector {
 
                 super.visitCode(obj);
             } catch (IOException e) {
+                // ignore
             } finally {
                 pw.close();
                 pw = null;

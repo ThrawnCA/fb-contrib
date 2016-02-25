@@ -47,8 +47,7 @@ import edu.umd.cs.findbugs.BytecodeScanningDetector;
 import edu.umd.cs.findbugs.ba.ClassContext;
 
 /**
- * Looks for methods that are direct copies of the implementation in the super
- * class. This detector doesn't handle multi-level inheritance, ie child to
+ * Looks for methods that are direct copies of the implementation in the super class. This detector doesn't handle multi-level inheritance, ie child to
  * grandparent. Could be done.
  */
 public class CopiedOverriddenMethod extends BytecodeScanningDetector {
@@ -75,8 +74,7 @@ public class CopiedOverriddenMethod extends BytecodeScanningDetector {
     }
 
     /**
-     * overrides the visitor to accept classes derived from non java.lang.Object
-     * classes.
+     * overrides the visitor to accept classes derived from non java.lang.Object classes.
      *
      * @param clsContext
      *            the context object of the currently parsed class
@@ -95,8 +93,8 @@ public class CopiedOverriddenMethod extends BytecodeScanningDetector {
                 Method[] methods = superCls.getMethods();
                 for (Method m : methods) {
                     String methodName = m.getName();
-                    if ((m.isPublic() || m.isProtected()) && (!m.isAbstract() && !m.isSynthetic()
-                            && (!Values.CONSTRUCTOR.equals(methodName) && !Values.STATIC_INITIALIZER.equals(methodName)))) {
+                    if ((m.isPublic() || m.isProtected()) && !m.isAbstract() && !m.isSynthetic()
+                            && !Values.CONSTRUCTOR.equals(methodName) && !Values.STATIC_INITIALIZER.equals(methodName)) {
                         String methodInfo = methodName + ':' + m.getSignature();
                         superclassCode.put(methodInfo, new CodeInfo(m.getCode(), m.getAccessFlags()));
                     }
@@ -125,8 +123,7 @@ public class CopiedOverriddenMethod extends BytecodeScanningDetector {
     }
 
     /**
-     * overrides the visitor to find code blocks of methods that are the same as
-     * its parents
+     * overrides the visitor to find code blocks of methods that are the same as its parents
      *
      * @param obj
      *            the code object of the currently parsed method
@@ -134,7 +131,7 @@ public class CopiedOverriddenMethod extends BytecodeScanningDetector {
     @Override
     public void visitCode(Code obj) {
         Method m = getMethod();
-        if ((!m.isPublic() && !m.isProtected() && !m.isAbstract()) || m.isSynthetic()) {
+        if ((!m.isPublic() && !m.isProtected()) || m.isAbstract() || m.isSynthetic()) {
             return;
         }
 
@@ -158,8 +155,7 @@ public class CopiedOverriddenMethod extends BytecodeScanningDetector {
     }
 
     /**
-     * overrides the visitor to look for an exact call to the parent class's
-     * method using this methods parm.
+     * overrides the visitor to look for an exact call to the parent class's method using this methods parm.
      *
      * @param seen
      *            the currently parsed instruction
@@ -206,32 +202,25 @@ public class CopiedOverriddenMethod extends BytecodeScanningDetector {
 
     private boolean isExpectedParmInstruction(int seen, int parmOffset, Type type) {
 
-        if ((type == Type.OBJECT) || (type == Type.STRING) || (type == Type.STRINGBUFFER) || (type == Type.THROWABLE)) {
-            if (parmOffset <= 3) {
-                return (Constants.ALOAD_0 + parmOffset) == seen;
-            }
-            return (Constants.ALOAD == seen) && (parmOffset == getRegisterOperand());
-        } else if (type == Type.DOUBLE) {
-            if (parmOffset <= 3) {
-                return (Constants.DLOAD_0 + parmOffset) == seen;
-            }
-            return (Constants.DLOAD == seen) && (parmOffset == getRegisterOperand());
-        } else if (type == Type.FLOAT) {
-            if (parmOffset <= 3) {
-                return (Constants.FLOAD_0 + parmOffset) == seen;
-            }
-            return (Constants.FLOAD == seen) && (parmOffset == getRegisterOperand());
-        } else if (type == Type.LONG) {
-            if (parmOffset <= 3) {
-                return (Constants.LLOAD_0 + parmOffset) == seen;
-            }
-            return (Constants.LLOAD == seen) && (parmOffset == getRegisterOperand());
+        switch (getExpectedReturnInstruction(type)) {
+            case Constants.ARETURN:
+                return isExpectedParmInstruction(Constants.ALOAD_0, Constants.ALOAD, seen, parmOffset);
+            case Constants.DRETURN:
+                return isExpectedParmInstruction(Constants.DLOAD_0, Constants.DLOAD, seen, parmOffset);
+            case Constants.FRETURN:
+                return isExpectedParmInstruction(Constants.FLOAD_0, Constants.FLOAD, seen, parmOffset);
+            case Constants.LRETURN:
+                return isExpectedParmInstruction(Constants.LLOAD_0, Constants.LLOAD, seen, parmOffset);
+            default:
+                return isExpectedParmInstruction(Constants.ILOAD_0, Constants.ILOAD, seen, parmOffset);
         }
+    }
 
+    private boolean isExpectedParmInstruction(int offsetConstant, int constant, int seen, int parmOffset) {
         if (parmOffset <= 3) {
-            return (Constants.ILOAD_0 + parmOffset) == seen;
+            return (offsetConstant + parmOffset) == seen;
         }
-        return (Constants.ILOAD == seen) && (parmOffset == getRegisterOperand());
+        return (constant == seen) && (parmOffset == getRegisterOperand());
     }
 
     private static int getExpectedReturnInstruction(Type type) {
@@ -261,8 +250,7 @@ public class CopiedOverriddenMethod extends BytecodeScanningDetector {
     }
 
     /**
-     * compares two code blocks to see if they are equal with regard to
-     * instructions and field accesses
+     * compares two code blocks to see if they are equal with regard to instructions and field accesses
      *
      * @param child
      *            the first code block
