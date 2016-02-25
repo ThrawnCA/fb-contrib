@@ -66,7 +66,7 @@ public class CollectMethodsReturningImmutableCollections extends BytecodeScannin
     private BugReporter bugReporter;
     private OpcodeStack stack;
     private String clsName;
-    private ImmutabilityType imType;
+    private ImmutabilityType imType = ImmutabilityType.UNKNOWN;
 
     /**
      * constructs a CMRIC detector given the reporter to report bugs on
