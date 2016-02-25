@@ -20,6 +20,7 @@
 package com.mebigfatguy.fbcontrib.detect;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import org.apache.bcel.Repository;
@@ -409,7 +410,8 @@ public class UnitTestAssertionOddities extends BytecodeScanningDetector {
             }
 
             if ((seen == INVOKEVIRTUAL) || (seen == INVOKESTATIC) || (seen == INVOKESPECIAL)) {
-                String lcName = getNameConstantOperand().toLowerCase();
+                // English will suffice for the checks we want to do
+                String lcName = getNameConstantOperand().toLowerCase(Locale.ENGLISH);
                 if (seen == INVOKEVIRTUAL) {
                     String sig = getSigConstantOperand();
                     if ("equals".equals(lcName) && "(Ljava/lang/Object;)Z".equals(sig)) {
@@ -418,7 +420,7 @@ public class UnitTestAssertionOddities extends BytecodeScanningDetector {
                 }
 
                 // assume that if you call a method in the unit test class, or
-                // call a method with assert of verify in them
+                // call a method with assert or verify in them
                 // it's possibly doing asserts for you. Yes this is a hack
 
                 if (clsName.equals(getClassConstantOperand()) || lcName.contains("assert") || lcName.contains("verify")) {
